@@ -1,0 +1,58 @@
+
+* dotstow
+
+** Description
+
+This little tool is a GNU Guile implementation of part of the functionality of
+the GNU Stow utility, dependint strongly on certain assumptions (see list),
+while fixing stow issues with "dot-" syntax for folders, and adding support
+for basic templating to address some limitations I found when deploying
+certain of my dot files on different systems with different usernames, etc.
+ 
+** Assumptions
+
+- FOLDER is located in ${HOME}/<whatever-name-you-use>/FOLDER
+- files to be ignored are suffixed with '-nostow' or '-NOSTOW'
+- dot files or folder names are preffixed by 'dot-'
+- template file names are preffixed by 'template-'
+    - templates are evaluable Guile scripts returning the contents to be
+    written to the intended file (OBVIOUSLY UNSAFE)
+
+** Usage, examples
+
+Usage: ~dostow FOLDER~
+
+#+begin_example bash
+λ ./dotstow test                                                                                                                                                                               
+[Nesting: 0] Folder test -> /home/spike/test
+Processing file /home/spike/.dotfiles/home-bin/test/dot-file with target name /home/spike/test/.file
+[Nesting: 1] Folder test/dot-folder -> /home/spike/test/.folder
+Processing file /home/spike/.dotfiles/home-bin/test/dot-folder/template-filet with target name /home/spike/test/.folder/filet
+Template: evaluate /home/spike/.dotfiles/home-bin/test/dot-folder/template-filet on /home/spike/test/.folder/filet 
+[Nesting: 2] Folder test/dot-folder/folder1 -> /home/spike/test/.folder/folder1
+Processing file /home/spike/.dotfiles/home-bin/test/dot-folder/folder1/dot-file2 with target name /home/spike/test/.folder/folder1/.file2
+Exit folder: test/dot-folder/folder1
+Exit folder: test/dot-folder
+Exit folder: test
+
+λ tree test -a                                                                                                                                                                                 
+test
+├── dot-file
+└── dot-folder
+    ├── folder1
+    │   └── dot-file2
+    └── template-filet
+
+2 directories, 3 files
+
+λ tree $HOME/test -a                                                                                                                                                                           
+/home/spike/test
+├── .file -> /home/spike/.dotfiles/home-bin/test/dot-file
+└── .folder
+    ├── filet
+    └── folder1
+        └── .file2 -> /home/spike/.dotfiles/home-bin/test/dot-folder/folder1/dot-file2
+
+2 directories, 3 files
+#+end_example
+
